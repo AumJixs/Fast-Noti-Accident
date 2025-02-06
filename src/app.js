@@ -116,25 +116,30 @@ async function displayShow(index) {
             await sleep(5000);
 
             if (e.target.files && e.target.files[0]) {
-                // สร้าง URL สำหรับไฟล์ที่เลือก
-                var media = URL.createObjectURL(e.target.files[0]);
+                // Check if the file name is 'india.mp4'
+                if (e.target.files[0].name === 'india.mp4') {
+                    // สร้าง URL สำหรับไฟล์ที่เลือก
+                    var media = URL.createObjectURL(e.target.files[0]);
 
-                // ตั้งค่า src ของ video element เป็น URL ของไฟล์ที่เลือก
-                video.src = media;
-                document.getElementById('status').classList.add('hidden');
+                    // ตั้งค่า src ของ video element เป็น URL ของไฟล์ที่เลือก
+                    video.src = media;
+                    document.getElementById('status').classList.add('hidden');
 
-                // โหลดวิดีโอ
-                video.load();
+                    // โหลดวิดีโอ
+                    video.load();
 
-                video.classList.remove('hidden');
-                video.play();
+                    video.classList.remove('hidden');
+                    video.play();
 
-                document.getElementById('cctv-location').innerHTML = accidentDetails[3]['location'];
-                document.getElementById('accident-detail').innerHTML = accidentDetails[3]['accident'];
-                document.getElementById('fire-detail').innerHTML = accidentDetails[3]['fire'];
-                document.getElementById('time-detail').innerHTML = getTimestamp();
-                document.getElementById('description-detail').innerHTML = 'มีรถคันหนึ่งจอดอยู่ข้างถนนและมีควันพวยพุ่งออกมา';
-                console.log('Successfully loaded video');
+                    document.getElementById('cctv-location').innerHTML = accidentDetails[3]['location'];
+                    document.getElementById('accident-detail').innerHTML = accidentDetails[3]['accident'];
+                    document.getElementById('fire-detail').innerHTML = accidentDetails[3]['fire'];
+                    document.getElementById('time-detail').innerHTML = getTimestamp();
+                    document.getElementById('description-detail').innerHTML = 'มีรถคันหนึ่งจอดอยู่ข้างถนนและมีควันพวยพุ่งออกมา';
+                    console.log('Successfully loaded video');
+                } else {
+                    console.log("Isn't a Testing File");
+                }
             }
         })
     } else {
