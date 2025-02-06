@@ -27,8 +27,8 @@ var marker, circle;
 function getPosition(position) {
     console.log(position);
 
-    var lat = 10.727342;
-    var long = 99.374299;
+    var lat = 10.7236604;
+    var long = 99.3770694;
     
     // var lat = position.coords.latitude;
     // var lng = position.coords.longitude;
