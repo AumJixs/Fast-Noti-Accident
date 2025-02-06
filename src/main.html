@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fast Noti Accident</title>
+
+  <!-- css , js for leaflet  -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.css" />
+
+  <!-- js for cctv -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+  <!-- css , js for tailwind  -->
+  <link rel="stylesheet" href="./output.css">
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* ปรับแต่ง Marker ด้วย CSS */
+    .custom-marker {
+      background-color: #ef4444;
+      /* สีแดงจาก Tailwind (#ef4444) */
+      border: 2px solid #b91c1c;
+      /* ขอบสีแดงเข้ม */
+      border-radius: 50%;
+      /* ทำให้เป็นวงกลม */
+      width: 25px;
+      height: 25px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform: translate(-50%, -100%);
+    }
+
+    .custom-marker::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 10px solid #ef4444;
+      /* สีของสามเหลี่ยม */
+    }
+
+    .leaflet-routing-container {
+      background-color: white;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<!-- <body data-theme="bumblebee" class="h-screen flex items-center justify-center"> -->
+
+<body class="bg-base-200 text-base-content" data-theme="bumblebee">
+  <!-- Alert -->
+  <div id="token-alert" role="alert"
+    class="hidden fixed bottom-4 right-4 p-4 rounded-lg bg-green-200 border border-green-400 text-green-900 shadow-lg flex items-center gap-3 w-96">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24">
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <!-- <span class="text-base font-semibold">Token entered successfully!</span> -->
+  </div>
+
+  <!-- Navbar -->
+  <nav>
+    <div class="navbar bg-base-100 shadow-lg">
+      <div class="navbar-start">
+        <div class="dropdown">
+          <label tabindex="0" class="btn btn-ghost btn-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+            </svg>
+          </label>
+          <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
+            <li><a href="#">Homepage</a></li>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css" />
+            <li><a href="#">Portfolio</a></li>
+            <li><a href="#">About</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="navbar-center">
+        <a class="btn btn-ghost normal-case text-xl font-bold">Fast Noti Accident</a>
+      </div>
+      <div class="navbar-end flex gap-2">
+        <button class="btn btn-ghost btn-circle">
+          <div class="indicator">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <span class="badge badge-xs badge-primary indicator-item"></span>
+          </div>
+        </button>
+        <button class="btn btn-ghost btn-circle" id="setting">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 48.71 48.71">
+            <defs>
+              <style>
+                .cls-1 {
+                  fill: #231f20;
+                }
+              </style>
+            </defs>
+            <g id="Layer_1-2">
+              <g>
+                <path class="cls-1"
+                  d="M24.36,15.78c-4.72,0-8.57,3.84-8.57,8.57s3.84,8.57,8.57,8.57,8.57-3.84,8.57-8.57-3.84-8.57-8.57-8.57Zm0,13.48c-2.71,0-4.91-2.2-4.91-4.91s2.2-4.92,4.91-4.92,4.92,2.2,4.92,4.92-2.21,4.91-4.92,4.91Z" />
+                <path class="cls-1"
+                  d="M47.01,18.66l-5.31-.34c-.19-.68-.49-1.32-.78-1.95l3.51-3.99c.63-.73.58-1.8-.1-2.48l-5.5-5.5c-.68-.68-1.75-.68-2.48-.05l-3.99,3.51c-.49-.29-1.02-.49-1.56-.68-.15-.05-.24-.1-.39-.15l-.34-5.31c-.05-.97-.83-1.7-1.8-1.7h-7.74c-.97,0-1.8.73-1.85,1.7l-.34,5.31c-.63.24-1.32.49-1.95.83l-3.99-3.56c-.68-.63-1.8-.58-2.48.1l-5.5,5.5c-.68.68-.68,1.75-.05,2.48l3.51,3.99c-.29.63-.58,1.27-.83,1.95l-5.31.34c-.93.05-1.71.83-1.71,1.8v7.79c0,.93.78,1.75,1.71,1.8l5.31.34c.24.63.49,1.32.83,1.95l-3.51,3.99c-.63.73-.63,1.8.05,2.48l3.8,3.8,1.66,1.61c.63.68,1.7.73,2.44.15l4.09-3.51c.63.34,1.32.58,1.95.83l.34,5.31c.05.93.88,1.7,1.85,1.7h7.74c.97,0,1.75-.78,1.8-1.7l.34-5.31c.49-.19.97-.39,1.46-.58.19-.05.34-.15.49-.24l3.99,3.51c.73.63,1.8.63,2.48-.05l1.17-1.17-2.53-2.63-.29-.24-3.26-2.92c-.58-.58-1.46-.68-2.19-.29-.44.29-.88.49-1.36.73-.68.29-1.41.54-2.14.78-.78.2-1.32.93-1.36,1.71l-.29,4.77h-4.34l-.29-4.73c0-.83-.58-1.56-1.36-1.75-1.22-.34-2.44-.83-3.56-1.51-.63-.39-1.56-.24-2.14.29l-3.6,3.12-3.07-3.02,3.12-3.51c.63-.58.73-1.51.34-2.24-.68-1.12-1.17-2.34-1.46-3.56-.24-.73-.97-1.27-1.75-1.32l-4.77-.34v-4.34l4.72-.29c.83,0,1.56-.54,1.8-1.32.29-1.22.78-2.44,1.46-3.56.39-.68.24-1.56-.29-2.14l-3.17-3.6,3.07-3.07,3.56,3.12c.58.58,1.51.73,2.19.29,1.12-.63,2.34-1.12,3.56-1.46.73-.2,1.31-.93,1.36-1.71l.29-4.77h4.34l.29,4.72c0,.83.54,1.56,1.32,1.75.49.15.93.29,1.36.44.73.29,1.51.63,2.19,1.02.68.39,1.56.29,2.19-.24l3.56-3.17,3.07,3.07-3.12,3.56c-.58.58-.73,1.46-.29,2.19.63,1.12,1.12,2.34,1.46,3.56.19.73.93,1.27,1.7,1.32l4.77.29v4.34l-4.72.29c-.83,0-1.56.58-1.75,1.36-.34,1.22-.83,2.44-1.46,3.56-.39.68-.24,1.56.24,2.14l2.97,3.41.19.19,2.58,2.58,1.22-1.22c.68-.68.73-1.75.1-2.48l-3.56-3.99c.34-.63.58-1.27.83-1.95l5.31-.34c.97-.05,1.7-.88,1.7-1.8v-7.79c0-.97-.73-1.75-1.7-1.8Z" />
+              </g>
+            </g>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Start , End Location -->
+  <div class="container mx-auto p-4">
+    <div class="mb-4 flex space-x-2">
+      <select id="start-location" class="select select-bordered w-full max-w-1/2">
+        <option disabled selected>Select Start Location</option>
+        <option value="Now">ตำแหน่งปัจจุบัน</option>
+      </select>
+      <select class="select select-bordered w-full max-w-1/2" id="end-location">
+        <option disabled selected>Select End Location</option>
+        <option value="0">สี่แยกโรงพยาบาล</option>
+        <option value="1">สามแยกโรงเรียน</option>
+        <option value="2">แยกตลาด</option>
+        <option value="3">อื่นๆ</option>
+      </select>
+      <button id="route-btn"
+        class="btn btn-primary px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600">
+        Find Route
+      </button>
+    </div>
+
+    <!-- Map Containner-->
+    <div class="relative w-full">
+      <div id="map" class="w-full h-[80vh] bg-gray-200"></div>
+
+      <!-- Popup and Overlay -->
+      <div id="overlay" class="hidden fixed inset-0 bg-black bg-opacity-50" style="z-index: 1000;"></div>
+      <div id="popup" class="hidden fixed inset-0 flex items-center justify-center p-4" style="z-index: 1001;">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl text-center">
+          <p class="text-3xl mb-4 font-bold text-black">
+            กล้องวงจรปิด: <span id="cctv-location" class="text-red-500 font-semibold"></span>
+          </p>
+          <video src="#" frameborder="0" autoplay="true" class="hidden w-full max-h-[500px] rounded-md mb-4 object-fill"
+            loop="" id="video" muted>
+          </video>
+          <div><progress class="hidden progress w-60" id="status"></progress></div>
+          <input id='upload-file' accept="video/*, image/*" type="file"
+            class="hidden file-input w-full max-w-xs file-input-primary my-3" />
+          <p class="text-xl mb-2 font-semibold">
+            อุบัติเหตุ: <span id="accident-detail" class="font-normal">-</span>
+          </p>
+          <p class="text-xl mb-2 font-semibold">
+            การเกิดไฟไหม้: <span id="fire-detail" class="font-normal">-</span>
+          </p>
+          <p class="text-xl mb-2 font-semibold">
+            เวลา: <span id="time-detail" class="font-normal">-</span>
+          </p>
+          <p class="text-xl mb-6 font-semibold">
+            คำอธิบาย: <span id="description-detail" class="font-normal">-</span>
+          </p>
+          <button id="close-popup"
+            class="bg-blue-500 text-white px-6 py-3 text-lg rounded-lg font-bold :bg-blue-600 transition">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+    <footer class="footer absolute inset-x-0 bottom-0 footer-center bg-base-100 text-base-content p-4">
+      <aside>
+        <p class="text-base text-center">
+            Copyright © 
+            <a href="https://github.com/AumJixs" class="text-blue-700" target="_blank" rel="noopener noreferrer">@AumJixs</a> 
+            - All rights reserved by 
+            <span class="font-semibold">SMT Student</span> 
+            <span role="img" aria-label="sparkles">✨</span>
+            <span role="img" aria-label="books">📚</span>
+        </p>
+    </aside>    
+    </footer>
+</body>
+
+</html>
+
+<!-- Js For Leaflet -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+<script src="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.js"></script>
+<script src="app.js" type="module"></script>
