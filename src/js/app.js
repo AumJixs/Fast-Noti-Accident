@@ -61,6 +61,7 @@ const locationList = [
     [10.49665686732214, 99.18516576290132],
     [10.496340340662089, 99.18454885482788],
     [10.495654206144177, 99.18267130851747],
+    // [10.496340340662089, 99.18454885482788],
     [10.497701754894452, 99.18317556381226]
 ];
 
@@ -73,7 +74,7 @@ locationList.forEach((coords) => {
 
 const accidentDetails = [
     { location: 'สี่แยกโรงพยาบาล', accident: 'รถพลิกคว่ำ', fire: 'เกิดไฟไหม้🔥', time: '23/01/2024 14:01:35', src: './resources/assets/video/fire-accident.mp4', explain: 'มีรถที่กำลังลุกไหม้และรถที่กำลังอยู่บนพื้น' },
-    { location: 'สามแยกโรงเรียน', accident: 'ไม่เกิดอุบัติเหตุ', fire: 'ไม่เกิดไฟไหม้🍀', time: '23/01/2024 15:30:10',src: './resources/assets/video/iP-Camera.mp4' },
+    { location: 'สามแยกโรงเรียน', accident: 'ไม่เกิดอุบัติเหตุ', fire: 'ไม่เกิดไฟไหม้🍀', time: '23/01/2024 15:30:10',src: './resources/assets/video/iP-Camera.mp4', explain: 'ตัวอย่างภาพวิดีโอจากกล้องวงจรปิด' },
     { location: 'แยกตลาด', accident: 'มอเตอร์ไซค์ล้ม', fire: 'ไม่เกิดไฟไหม้🍀', time: '23/01/2024 14:15:20', src: './resources/assets/video/motorcycle.mp4', explain: 'มีคนนั่งอยู่บนถนนและมีรถมอเตอร์ไซต์พลิกคว่ำอยู่' },
     { location: 'ตัวอย่าง', accident: 'รถชนมอเตอร์ไซค์', fire: 'ไม่เกิดไฟไหม้🍀', }
 ];
@@ -181,73 +182,52 @@ let routingControl = null;
 
 // Add Route Finding Functionality
 document.getElementById('route-btn').addEventListener('click', () => {
-    const startInput = document.getElementById('start-location');
-    const endInput = document.getElementById('end-location');
+    const endIndex = parseInt(document.getElementById('end-location').value, 10);
 
-    console.log('Start Location:', startInput.value);
-    console.log('End Location:', endInput.value);
+    if (isNaN(endIndex) || endIndex < 0 || endIndex >= locationList.length) {
+        console.error("Invalid end location index.");
+        return;
+    }
 
-    // Get user's current location
     navigator.geolocation.getCurrentPosition((position) => {
-        // const lat = position.coords.latitude;
-        // const lng = position.coords.longitude;
-
         const lat = 10.727342;
         const lng = 99.374299;
 
         console.log('Current Location:', lat, lng);
-        console.log(locationList[endInput.value][0].toFixed(7), locationList[endInput.value][1].toFixed(7)) // End location
+        console.log('Destination:', locationList[endIndex][0], locationList[endIndex][1]);
 
-        // Remove previous routing if it exists
-        if (typeof routingControl !== 'undefined' && routingControl) {
+        // ลบ routingControl เดิมก่อนสร้างใหม่
+        if (routingControl) {
             map.removeControl(routingControl);
+            routingControl = null;
         }
 
-        // Geocode start location
-        geocoder.geocode(startInput.value, (startResults) => {
-            if (startResults && startResults.length > 0) {
-                const startLatLng = startResults[0].center;
+        // สร้างเส้นทางจากตำแหน่งปัจจุบันไปยัง locationList[endIndex]
+        routingControl = L.Routing.control({
+            waypoints: [
+                L.latLng(lat, lng), // จุดเริ่มต้น
+                L.latLng(locationList[endIndex][0], locationList[endIndex][1]) // จุดหมายปลายทาง
+            ],
+            routeWhileDragging: true,
+            geocoder: geocoder,
+            router: L.Routing.osrmv1({
+                serviceUrl: 'https://router.project-osrm.org/route/v1'
+            }),
+            lineOptions: {
+                styles: [{ color: 'blue', opacity: 0.7, weight: 5 }]
+            },
+            addWaypoints: false,
+            draggableWaypoints: false,
+            fitSelectedRoutes: true,
+            showAlternatives: true
+        }).addTo(map);
 
-                // Geocode end location
-                geocoder.geocode(endInput.value, (endResults) => {
-                    if (endResults && endResults.length > 0) {
-                        const endLatLng = endResults[0].center;
-
-                        // Create routing control
-                        routingControl = L.Routing.control({
-                            waypoints: [
-                                L.latLng(lat,lng), // Current location as the starting point
-                                L.latLng(locationList[endInput.value][0].toFixed(7), locationList[endInput.value][1].toFixed(7)) // End location
-                            ],
-                            routeWhileDragging: true,
-                            geocoder: geocoder,
-                            router: L.Routing.osrmv1({
-                                serviceUrl: 'https://router.project-osrm.org/route/v1'
-                            }),
-                            lineOptions: {
-                                styles: [{
-                                    color: 'blue',
-                                    opacity: 0.7,
-                                    weight: 5
-                                }]
-                            },
-                            addWaypoints: false,
-                            draggableWaypoints: false,
-                            fitSelectedRoutes: true,
-                            showAlternatives: true
-                        }).addTo(map);
-
-                        // Fit map to route bounds
-                        map.fitBounds([startLatLng, endLatLng]);
-                    } else {
-                        console.error('Failed to geocode end location.');
-                    }
-                });
-            } else {
-                console.error('Failed to geocode start location.');
-            }
-        });
+        // Fit map to route bounds
+        map.fitBounds([
+            [lat, lng],
+            [locationList[endIndex][0], locationList[endIndex][1]]
+        ]);
     }, (error) => {
         console.error('Error getting current location:', error.message);
     });
-})
+});
