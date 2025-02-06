@@ -190,8 +190,8 @@ document.getElementById('route-btn').addEventListener('click', () => {
     }
 
     navigator.geolocation.getCurrentPosition((position) => {
-        const lat = 10.727342;
-        const lng = 99.374299;
+        const lat = 10.7236604;
+        const lng = 99.3770694;
 
         console.log('Current Location:', lat, lng);
         console.log('Destination:', locationList[endIndex][0], locationList[endIndex][1]);
