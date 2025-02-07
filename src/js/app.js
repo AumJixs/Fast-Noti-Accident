@@ -27,11 +27,11 @@ var marker, circle;
 function getPosition(position) {
     console.log(position);
 
-    var lat = 10.7236604;
-    var long = 99.3770694;
+    // var lat = 10.7236604;
+    // var long = 99.3770694;
     
-    // var lat = position.coords.latitude;
-    // var lng = position.coords.longitude;
+    var lat = position.coords.latitude;
+    var long = position.coords.longitude;
     var acc = position.coords.accuracy;
 
     if (marker || circle) {
@@ -190,8 +190,10 @@ document.getElementById('route-btn').addEventListener('click', () => {
     }
 
     navigator.geolocation.getCurrentPosition((position) => {
-        const lat = 10.7236604;
-        const lng = 99.3770694;
+        // const lat = 10.7236604;
+        // const lng = 99.3770694;
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
 
         console.log('Current Location:', lat, lng);
         console.log('Destination:', locationList[endIndex][0], locationList[endIndex][1]);
